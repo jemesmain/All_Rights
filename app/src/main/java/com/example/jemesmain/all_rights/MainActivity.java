@@ -1,6 +1,7 @@
 package com.example.jemesmain.all_rights;
 
 import android.Manifest;
+import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.SharedPreferences;
@@ -11,6 +12,7 @@ import android.preference.PreferenceManager;
 import android.support.v4.app.ActivityCompat;
 
 import android.support.v4.content.ContextCompat;
+import android.support.v4.content.FileProvider;
 import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
@@ -19,19 +21,23 @@ import android.view.View;
 import android.widget.Button;
 import android.widget.Toast;
 
+import java.io.File;
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
 import static android.os.Environment.DIRECTORY_DOWNLOADS;
+import static android.os.Environment.getExternalStorageDirectory;
 
 public class MainActivity extends AppCompatActivity {
 
 
     public static final int REQUEST_ID_MULTIPLE_PERMISSIONS = 1;
     public static final String TAG = "taq auth";
-
+    //private static final String AUTHORITY = BuildConfig.APPLICATION_ID+".fileprovider";
+    //private static final String AUTHORITY ="com.example.jemesmain.all_rights.fileprovider";
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -229,14 +235,55 @@ private  boolean checkAndRequestPermissions() {
         Intent emailIntent = new Intent(Intent.ACTION_SEND);
 
         emailIntent.setData(Uri.parse("mailto:"));
-        emailIntent.setType("text/plain");
+        //emailIntent.setType("text/plain");
+        emailIntent.setType("file/vcf");
         emailIntent.putExtra(Intent.EXTRA_EMAIL, TO);
         emailIntent.putExtra(Intent.EXTRA_CC, CC);
         emailIntent.putExtra(Intent.EXTRA_SUBJECT, "All_rights: test attachment");
         emailIntent.putExtra(Intent.EXTRA_TEXT, "Bonjour email généré par l'application All Rights \n\n");
+
+        //vcard attachment
+        //File vcard = new File ("/storage/emulated/0/Android/data/com.example.jemesmain.all_rights/files/Download/vcard.vcf");
+        //Uri uri = Uri.parse(vcard.toString());
+        //Uri uri = Uri.
+        //emailIntent.putExtra(Intent.EXTRA_STREAM,"content://"+ uri);
+        //emailIntent.grantUriPermission("com.example.jemesmain.all_rights", "/storage/emulated/0/Android/data/com.example.jemesmain.all_rights/files/Download/vcard.vcf", Intent.FLAG_GRANT_READ_URI_PERMISSION);
+        //emailIntent.setFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION);
+
+
+        //vcard attachment https://medium.com/@benexus/dealing-with-permissions-when-sharing-files-android-m-cee9ecc287bf
+        //String file = Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_PICTURES) + “/YOUR_FOLDER/myFile.jpg”;
+        File vdfdirectory = new File(getExternalFilesDir(DIRECTORY_DOWNLOADS),"");
+        Log.d("taq vdfdirectory",vdfdirectory.toString());
+        if (!vdfdirectory.exists()) {
+                vdfdirectory.mkdirs();
+            }
+        File vcfFile = new File(vdfdirectory, "test.vcf");
+        try {
+            vcfFile.createNewFile();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+        String authority = getApplicationContext().getPackageName() +".fileprovider";
+        //File vcard = new File (Environment.getExternalStoragePublicDirectory(DIRECTORY_DOWNLOADS),"vcard.vcf");
+        File vcard = new File (getExternalFilesDir(DIRECTORY_DOWNLOADS),"vcard.vcf");
+        //File vcard = new File (getCacheDir(),"vcard.vcf");
+        //File vcard = (File) getExternalStorageDirectory(DIRECTORY_DOWNLOADS).toString()+"vcard.vcf";
+        //File vcard = new File ("vcard_path","vcard.vcf");
+        Log.d("taq vcard path",vcard.toString());
+        //File vcardDirPath = new File(getFilesDir(), vcard_path);
+        //File vcard = new File(vcardDirPath, "vcard.vcf");
+        //Uri fileUri = FileProvider.getUriForFile(this, "com.example.jemesmain.all_rights.fileprovider", vcard);
+        Uri fileUri = FileProvider.getUriForFile(this, authority, vcard);
+        //Uri fileUri = FileProvider.getUriForFile(this, "com.example.fileprovider", vcard);
+        Log.d("taq fileUri path",fileUri.toString());
+        emailIntent.addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION);
+        //emailIntent.putExtra(Intent.EXTRA_STREAM, fileUri);
+        //emailIntent.putExtra(Intent.EXTRA_STREAM,"content://storage/emulated/0/Android/data/com.example.jemesmain.all_rights/files/Download/vcard.vcf");
+
         try {
             startActivity(Intent.createChooser(emailIntent, "Choisissez votre programme de mail"));
-            Log.d("taq test",Environment.getExternalStoragePublicDirectory(DIRECTORY_DOWNLOADS).toString());
+            //Log.d("taq createChooser path",fileUri.toString());
             finish();
             Log.d("taq sending email", "Finished sending email...");
         } catch (android.content.ActivityNotFoundException ex) {

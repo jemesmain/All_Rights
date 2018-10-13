@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="utf-8" ?>
+
+<paths>
+<files-path name="vcard_path" path="."/>
+</paths>
+
+<!--
+<paths xmlns:android=”http://schemas.android.com/apk/res/android">
+<external-path
+name="External_files"
+path="." />
+    </paths>
+
+    <files-path name="app_directory" path="directory/"/>
+    files-path name="vcard_path" path="files/Download/"/>
+-->
+
